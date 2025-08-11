@@ -24,7 +24,7 @@ from bell_state_generation import sample_eigenvalue_distributions
 N = 16
 k = 11
 l = 1
-M = 20  # Number of samples
+M = 50  # Number of samples
 
 # Sample and plot distributions
 sample_eigenvalue_distributions(N, k, l, M)
