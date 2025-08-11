@@ -1,3 +1,9 @@
+"""
+bell_state_generation.py
+
+A module for generating samples of Bell states from QL-bits and 
+analyzing eigenvalues and eigenvectors of the Bell states.
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
