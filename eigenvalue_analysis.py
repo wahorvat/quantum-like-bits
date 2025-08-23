@@ -64,7 +64,7 @@ def visualize_eigenvalue_distribution(coupled_matrix, graph_info, show_plot=True
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
     
     # 1. Subgraph 1 eigenvalues
-    axes[0].hist(eigenvals_subgraph1, bins=min(15, len(eigenvals_subgraph1)//2 + 1), 
+    axes[0].hist(eigenvals_subgraph1, bins=100, 
                 alpha=0.7, color='lightblue', edgecolor='black')
     axes[0].set_title(f'Subgraph 1 Eigenvalues\n({k}-Regular, {N} nodes)')
     axes[0].set_xlabel('Eigenvalue')
@@ -78,7 +78,7 @@ def visualize_eigenvalue_distribution(coupled_matrix, graph_info, show_plot=True
                 verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
     
     # 2. Subgraph 2 eigenvalues
-    axes[1].hist(eigenvals_subgraph2, bins=min(15, len(eigenvals_subgraph2)//2 + 1), 
+    axes[1].hist(eigenvals_subgraph2, bins=100, 
                 alpha=0.7, color='lightcoral', edgecolor='black')
     axes[1].set_title(f'Subgraph 2 Eigenvalues\n({k}-Regular, {N} nodes)')
     axes[1].set_xlabel('Eigenvalue')
@@ -92,7 +92,7 @@ def visualize_eigenvalue_distribution(coupled_matrix, graph_info, show_plot=True
                 verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
     
     # 3. Coupled graph eigenvalues
-    axes[2].hist(eigenvals_coupled, bins=min(20, len(eigenvals_coupled)//2 + 1), 
+    axes[2].hist(eigenvals_coupled, bins=100, 
                 alpha=0.7, color='gold', edgecolor='black')
     axes[2].set_title(f'Coupled Graph Eigenvalues\n(Degree {k+m}, {2*N} nodes)')
     axes[2].set_xlabel('Eigenvalue')
@@ -118,4 +118,3 @@ def visualize_eigenvalue_distribution(coupled_matrix, graph_info, show_plot=True
         plt.show()
     
     return fig, (eigenvals_subgraph1, eigenvals_subgraph2, eigenvals_coupled)
-
