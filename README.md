@@ -1,8 +1,6 @@
 # Quantum-like bits
 
-Research software for generating and visualizing quantum-like bits (QL-bits) and networks of coupled QL-bits, based on the following paper:
-
-**Quantum information with quantumlike bits** ([arXiv:2408.06485](https://arxiv.org/abs/2408.06485))
+Research software for generating and visualizing quantum-like bits (QL-bits) and networks of coupled QL-bits.
 
 ## Installation
 
