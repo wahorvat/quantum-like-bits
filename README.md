@@ -21,6 +21,7 @@ from core import generate_k_regular_graph, generate_quantum_like_bit, couple_ql_
 from core import visualize_ql_bit, visualize_ql_network, visualize_ql_network_ring, visualize_ql_network_circular
 from core import compute_eigenspectrum, spectral_density_exact, spectral_density_approx
 from core import plot_eigenvalue_histogram, plot_spectral_density
+from core import minimal_quotient, contract_ql_bit
 ```
 
 ---
@@ -198,4 +199,74 @@ ql, info = generate_quantum_like_bit(N=40, k=20, l=1)
 x, rho_bulk, rho_emergent = spectral_density_approx(ql, n_bits=3, x_range=(-30, 100))
 
 plot_spectral_density(x, rho_bulk, rho_emergent, x_range=(-90, 300), show_plot=True)
+```
+
+---
+
+### Graph contraction (equitable partition / minimal quotient)
+
+The Cartesian product of N QL-bits grows as `(2N)^N` nodes, which becomes intractable quickly. An equitable partition that groups nodes by subgraph membership within each constituent QL-bit yields a **divisor (quotient) matrix** that preserves all `2^N` emergent eigenvalues while discarding the bulk incoherent states. This is Theorem 1 of Horvat et al.
+
+The emergent eigenvalues of the quotient are all `2^N` sign combinations:
+```
+λ = (Σ k_q) ± l_1 ± l_2 ± ... ± l_N
+```
+
+Two functions are provided depending on whether the full Cartesian product matrix is available.
+
+#### Direct construction — no Cartesian product required
+
+Builds the `2^N × 2^N` minimal quotient matrix directly from the `(k, l)` parameters of each QL-bit. This is the preferred path for large systems where forming the full product matrix is impractical.
+
+```python
+Q, q_info = minimal_quotient(ql1, ql2)          # 4×4 for two QL-bits
+Q, q_info = minimal_quotient(ql1, ql2, ql3)     # 8×8 for three QL-bits
+```
+
+- `Q` — the `2^N × 2^N` divisor matrix
+- `q_info['diagonal_shift']` — the `Σ k_q` self-loop contribution on the diagonal (a global spectral shift; remove it to centre eigenvalues at `± l_q`)
+
+#### Iterative contraction from the full matrix
+
+Given the output of `couple_ql_bits`, `contract_ql_bit` collapses one QL-bit at a time to its 2-node quotient using the characteristic matrix formula `Aπ = (1/N_q) · S^T A S`. Call it repeatedly in any order — the result is independent of the sequence (Lemma 4, associativity of fibrations).
+
+```python
+# Contract ql2 first (target index 1) → intermediate 2·n1 × 2·n1 matrix
+mid, mid_info = contract_ql_bit((coupled, net_info), target=1)
+
+# Contract ql1 next (target index 0) → full 4×4 minimal quotient
+full_min, fm_info = contract_ql_bit((mid, mid_info), target=0)
+```
+
+`target` is the 0-based index into `net_info['ql_bits']`, where index `0` is the innermost QL-bit (first argument to `couple_ql_bits`) and index `N-1` is the outermost.
+
+The intermediate matrix after one contraction is itself a valid (smaller) QL-bit network and can be passed directly to `compute_eigenspectrum` or the spectral density functions.
+
+#### Full example
+
+```python
+from core import (
+    generate_quantum_like_bit, couple_ql_bits,
+    minimal_quotient, contract_ql_bit,
+    compute_eigenspectrum,
+)
+
+ql1 = generate_quantum_like_bit(N=20, k=12, l=1)
+ql2 = generate_quantum_like_bit(N=20, k=12, l=1)
+
+# Full Cartesian product (1600×1600)
+coupled, net_info = couple_ql_bits(ql1, ql2)
+evals_full, _ = compute_eigenspectrum(coupled)
+
+# Intermediate: contract ql2 only (80×80, preserves ql1 at full size)
+mid, mid_info = contract_ql_bit((coupled, net_info), target=1)
+evals_mid, _ = compute_eigenspectrum(mid)
+
+# Full minimal quotient — two equivalent routes:
+full_min, _ = contract_ql_bit((mid, mid_info), target=0)   # iterative
+Q_direct, _ = minimal_quotient(ql1, ql2)                   # direct (no full matrix needed)
+
+# All three give the same 4 emergent eigenvalues: k1+k2 ± l1 ± l2
+print(compute_eigenspectrum(full_min)[0].round(4))
+print(compute_eigenspectrum(Q_direct)[0].round(4))
 ```

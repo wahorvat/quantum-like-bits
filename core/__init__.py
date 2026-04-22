@@ -7,3 +7,4 @@ from .spectral_analysis import (
     plot_eigenvalue_histogram,
     plot_spectral_density,
 )
+from .contraction import minimal_quotient, contract_ql_bit
