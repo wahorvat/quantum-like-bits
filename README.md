@@ -10,7 +10,7 @@ Research software for generating and visualizing quantum-like bits (QL-bits) and
 pip install .
 ```
 
-Dependencies: `numpy`, `networkx`, `matplotlib`.
+Dependencies: `numpy`, `scipy`, `networkx`, `matplotlib`.
 
 ## Core API
 
@@ -19,6 +19,8 @@ All public functions live in the `core/` package.
 ```python
 from core import generate_k_regular_graph, generate_quantum_like_bit, couple_ql_bits
 from core import visualize_ql_bit, visualize_ql_network, visualize_ql_network_ring, visualize_ql_network_circular
+from core import compute_eigenspectrum, spectral_density_exact, spectral_density_approx
+from core import plot_eigenvalue_histogram, plot_spectral_density
 ```
 
 ---
@@ -108,19 +110,92 @@ Edge types in network visualizations:
 - **Dashed gray** — inter-copy edges added by the Cartesian product
 - **Solid dark gray** — intra-QL-bit coupling edges
 
-<!-- ---
+---
 
-### Eigenvalue analysis
+### Eigenspectral analysis
 
-`eigenvalue_analysis.py` provides standalone utilities for computing and comparing eigenvalue spectra of QL-bit structures.
+Two computation paths are provided. Both split the spectrum into **emergent (coherent) states** — the top eigenvalues, kept as sharp features — and the **incoherent bulk**, which is Gaussian-smoothed.
 
---- -->
+For an n-bit QL-bit network the expected number of emergent states is `2**n_bits`.
 
-<!-- ## Notebooks
+#### Eigendecomposition
 
-| Notebook | Contents |
-|---|---|
-| `scratch.ipynb` | General exploration |
-| `entangled two QL viz.ipynb` | Two-QL-bit visualization examples |
-| `graph_spectra_viz.ipynb` | Spectral analysis of QL-bit graphs |
-| `computational_basis_poc.ipynb` | Computational basis proof-of-concept | -->
+```python
+eigenvalues, eigenvectors = compute_eigenspectrum(adj_matrix)
+```
+
+Uses `numpy.linalg.eigh` (symmetric-aware, real eigenvalues guaranteed). Returns both arrays sorted by `|λ|` descending.
+
+#### Exact spectral density
+
+Computes the density of states directly from the full eigendecomposition. Precise but scales as O(N³) — practical up to moderate matrix sizes.
+
+```python
+x, rho_bulk, rho_emergent = spectral_density_exact(
+    adj_matrix,
+    num_emergent=2**n_bits,  # e.g. 4 for a 2-bit network
+    x_range=(-30, 100),      # eigenvalue axis range; auto-derived if None
+    bins=8000,
+    sigma=50.0,              # Gaussian smoothing width in bins for bulk
+)
+```
+
+#### Approximate spectral density (convolution)
+
+Approximates the spectrum of an n-bit Cartesian-product network by convolving the single-bit spectrum `n_bits` times. Avoids constructing the full coupled matrix, making it practical for large `n_bits`.
+
+The product rule applied at each convolution step keeps emergent states from contaminating the smooth bulk hump:
+- `new_emergent = emergent ⊛ emergent`
+- `new_bulk = (bulk ⊛ bulk) + (bulk ⊛ emergent) + (emergent ⊛ bulk)`
+
+```python
+x, rho_bulk, rho_emergent = spectral_density_approx(
+    ql_adj_matrix,           # single QL-bit matrix (the base unit)
+    n_bits=3,
+    x_range=(-30, 100),      # range for the single-bit spectrum; auto-derived if None
+    bins=8000,
+    sigma=50.0,
+)
+```
+
+---
+
+### Spectral visualization
+
+#### All eigenstates — histogram
+
+```python
+plot_eigenvalue_histogram(eigenvalues, x_range=(-30, 100), bins=200)
+```
+
+Plots a raw histogram of all eigenvalues with no emergent/bulk separation.
+
+#### Split density — emergent lines + smooth bulk
+
+Takes the three arrays returned by either `spectral_density_exact` or `spectral_density_approx`.  Emergent states are drawn as vertical lines; the incoherent bulk as a smooth continuous curve on a log y-axis.
+
+```python
+plot_spectral_density(
+    x, rho_bulk, rho_emergent,
+    x_range=(-30, 100),
+    y_range=(1e-6, 10),
+    color='forestgreen',
+    label='My spectrum',       # optional legend label
+    log_scale=True,
+    show_plot=True,            # display interactively
+    save_path='spectrum.png',  # or omit to use default filename
+)
+```
+
+#### Full example
+
+```python
+from core import generate_quantum_like_bit, spectral_density_approx, plot_spectral_density
+
+ql, info = generate_quantum_like_bit(N=40, k=20, l=1)
+
+# Approximate spectrum for a 3-bit network without building the coupled matrix
+x, rho_bulk, rho_emergent = spectral_density_approx(ql, n_bits=3, x_range=(-30, 100))
+
+plot_spectral_density(x, rho_bulk, rho_emergent, x_range=(-90, 300), show_plot=True)
+```
