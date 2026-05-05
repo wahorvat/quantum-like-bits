@@ -8,3 +8,16 @@ from .spectral_analysis import (
     plot_spectral_density,
 )
 from .contraction import minimal_quotient, contract_ql_bit
+from .gates import (
+    GATES,
+    compute_basis_change,
+    apply_single_qubit_gate,
+    apply_gate_sequence,
+    identity,
+    pauli_x,
+    pauli_y,
+    pauli_z,
+    hadamard,
+    t_gate,
+    phase_gate,
+)

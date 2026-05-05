@@ -118,6 +118,10 @@ def minimal_quotient(*ql_bits):
         'l_values':       l_values,
         'diagonal_shift': int(np.sum(k_values)),
         'ql_bits':        infos,
+        # Every QL-bit is contracted to 1 node per subgraph (2 total).
+        # These fields let gate functions use the correct strides/sizes.
+        'contracted':      set(range(N)),
+        'current_strides': [2 ** q for q in range(N)],
     }
 
     return Q, quotient_info
