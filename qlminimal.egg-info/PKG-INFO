@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: qlminimal
+Version: 0.1.0
+Summary: QL-bits and their minimal representation
+Requires-Python: >=3.9
+License-File: LICENSE
+Requires-Dist: matplotlib>=3.9
+Requires-Dist: networkx>=3.2
+Requires-Dist: numpy>=1.24
+Requires-Dist: scipy>=1.10
+Dynamic: license-file

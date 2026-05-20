@@ -1,0 +1,15 @@
+LICENSE
+README.md
+pyproject.toml
+core/__init__.py
+core/contraction.py
+core/gates.py
+core/graph_generation.py
+core/spectral_analysis.py
+core/visualization.py
+qlminimal.egg-info/PKG-INFO
+qlminimal.egg-info/SOURCES.txt
+qlminimal.egg-info/dependency_links.txt
+qlminimal.egg-info/requires.txt
+qlminimal.egg-info/top_level.txt
+tests/test_gates.py
